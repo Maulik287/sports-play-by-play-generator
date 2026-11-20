@@ -1,0 +1,56 @@
+{
+  "model_architecture": {
+    "name": "SportsGPT",
+    "d_model": 48,
+    "n_heads": 4,
+    "n_layers": 2,
+    "vocab_size": 200,
+    "max_len": 64
+  },
+  "benchmark_comparison": {
+    "random_baseline": {
+      "loss": 5.2983,
+      "perplexity": 200.0
+    },
+    "bigram_baseline": {
+      "loss": 3.9211,
+      "perplexity": 50.46
+    },
+    "sports_gpt": {
+      "cross_entropy_loss": 2.8089,
+      "perplexity": 16.59
+    }
+  },
+  "sample_generations": [
+    {
+      "sport": "soccer",
+      "prompt": "Stoppage time penalty kick",
+      "excitement": "high",
+      "generated_output": "[SOCCER] Stoppage time penalty kick opationshirin bity sterip sing me offen cumamp!"
+    },
+    {
+      "sport": "basketball",
+      "prompt": "Curry step-back three at the buzzer",
+      "excitement": "high",
+      "generated_output": "[BASKETBALL] Curry step-back three at the buzzer man cates pret! [BANRRIItouohey man mationh!"
+    },
+    {
+      "sport": "football",
+      "prompt": "Fourth and goal on the one-yard line",
+      "excitement": "high",
+      "generated_output": "[FOOTBALL] Fourth and goal on the one-yard line oment! [CRIFOBALL] RIIICFOOTEGainable timenty!"
+    },
+    {
+      "sport": "cricket",
+      "prompt": "Yorker on the final ball with 4 needed",
+      "excitement": "high",
+      "generated_output": "[CRICKET] Yorker on the final ball with 4 needed mentup for the ometdcuare and sal fentersing menting ft with!"
+    },
+    {
+      "sport": "tennis",
+      "prompt": "Baseline rally at championship point",
+      "excitement": "medium",
+      "generated_output": "[TENNIS] Baseline rally at championship point game sing me and pul me se exsame and so curul y"
+    }
+  ]
+}

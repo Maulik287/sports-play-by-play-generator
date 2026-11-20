@@ -1,4 +1,4 @@
-"""Sports Play-by-Play Generator: End-to-end GPT implementation from scratch."""
+"""Core implementation for the Sports Play-by-Play Generator."""
 from __future__ import annotations
 import math
 import random
@@ -14,13 +14,12 @@ from app.model import GPTEmbedding, CausalSelfAttention, TransformerBlock, Sport
 from app.storage import Store
 
 
-# Default cached components for fast CLI and test runs
 _DEFAULT_TOKENIZER: BPETokenizer | None = None
 _DEFAULT_MODEL: SportsGPT | None = None
 
 
 def get_trained_tokenizer(vocab_size: int = 220) -> BPETokenizer:
-    """Get or train cached BPE tokenizer on sports corpus."""
+    """Retrieve or train cached BPE tokenizer on sports corpus."""
     global _DEFAULT_TOKENIZER
     if _DEFAULT_TOKENIZER is None or _DEFAULT_TOKENIZER.vocab_size != vocab_size:
         corpus = load_sports_corpus()
@@ -35,11 +34,10 @@ def create_dataset_batches(
     block_size: int = 32,
     batch_size: int = 8
 ) -> list[tuple[torch.Tensor, torch.Tensor]]:
-    """Create input-target training pairs from token sequence."""
+    """Generate training input-target pairs from token sequences."""
     batches = []
     n_tokens = len(token_ids)
     if n_tokens <= block_size:
-        # Pad sequence if too short
         token_ids = token_ids + [0] * (block_size + 1 - n_tokens)
         n_tokens = len(token_ids)
 
@@ -51,7 +49,6 @@ def create_dataset_batches(
         xs.append(x)
         ys.append(y)
 
-    # Group into batches
     for i in range(0, len(xs) - batch_size + 1, batch_size):
         bx = torch.tensor(xs[i : i + batch_size], dtype=torch.long)
         by = torch.tensor(ys[i : i + batch_size], dtype=torch.long)
@@ -71,7 +68,7 @@ def train_gpt_model(
     epochs: int = 15,
     lr: float = 3e-3
 ) -> list[float]:
-    """Train SportsGPT model and return loss history."""
+    """Train SportsGPT model with AdamW and cross-entropy loss."""
     model.train()
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2)
     loss_history: list[float] = []
@@ -93,7 +90,7 @@ def train_gpt_model(
 
 
 def get_trained_model(epochs: int = 12) -> tuple[SportsGPT, BPETokenizer]:
-    """Get or train a cached lightweight SportsGPT instance."""
+    """Retrieve or train a cached lightweight SportsGPT instance."""
     global _DEFAULT_MODEL
     tokenizer = get_trained_tokenizer(vocab_size=200)
     if _DEFAULT_MODEL is None:
@@ -145,7 +142,6 @@ def generate_sports_commentary(
     result_ids = generated_idx[0].tolist()
     decoded = tokenizer.decode(result_ids)
 
-    # Style commentary based on excitement level
     if excitement.lower() == "high":
         if not decoded.endswith("!"):
             decoded = decoded.rstrip(".") + "!"
@@ -155,10 +151,8 @@ def generate_sports_commentary(
     return decoded
 
 
-# --- Milestone 1: Gather a small corpus of sports commentary or news articles.
-# Hint: Data collection and preprocessing
 def milestone_1() -> dict[str, Any]:
-    """Gather, clean and preprocess the sports commentary corpus."""
+    """Milestone 1: Data collection and preprocessing pipeline."""
     corpus = load_sports_corpus()
     snippets = split_into_snippets(corpus)
     vocab = set(corpus.split())
@@ -173,10 +167,8 @@ def milestone_1() -> dict[str, Any]:
     }
 
 
-# --- Milestone 2: Implement the byte-pair tokenizer and create embeddings from the sports text.
-# Hint: Byte-pair tokenization and embedding creation
 def milestone_2() -> dict[str, Any]:
-    """Train BPE tokenizer and instantiate PyTorch embedding layers."""
+    """Milestone 2: Byte-pair tokenization and embedding creation."""
     corpus = load_sports_corpus()
     tokenizer = BPETokenizer()
     tokenizer.train(corpus, target_vocab_size=180)
@@ -201,20 +193,16 @@ def milestone_2() -> dict[str, Any]:
     }
 
 
-# --- Milestone 3: Build the causal self-attention mechanism and assemble the transformer block.
-# Hint: Causal self-attention and transformer block assembly
 def milestone_3() -> dict[str, Any]:
-    """Assemble causal self-attention and transformer block, verifying causal mask."""
+    """Milestone 3: Causal self-attention mechanism and transformer block assembly."""
     d_model = 32
     n_heads = 4
     max_len = 48
     attn = CausalSelfAttention(d_model=d_model, n_heads=n_heads, max_len=max_len)
     block = TransformerBlock(d_model=d_model, n_heads=n_heads, max_len=max_len)
 
-    # Test causality: check mask is lower triangular
     is_causal = torch.all(attn.tril == torch.tril(torch.ones(max_len, max_len))).item()
 
-    # Verify transformer block input and output shapes match
     x = torch.randn(2, 10, d_model)
     out = block(x)
 
@@ -230,10 +218,8 @@ def milestone_3() -> dict[str, Any]:
     }
 
 
-# --- Milestone 4: Train the GPT model using the sports text data.
-# Hint: Model training
 def milestone_4() -> dict[str, Any]:
-    """Train the GPT model using the sports text data and verify loss reduction."""
+    """Milestone 4: GPT model training using sports text data."""
     tokenizer = get_trained_tokenizer(vocab_size=160)
     corpus = load_sports_corpus()
     token_ids = tokenizer.encode(corpus)
@@ -261,10 +247,8 @@ def milestone_4() -> dict[str, Any]:
     }
 
 
-# --- Milestone 5: Develop a text generation function to produce short commentary snippets.
-# Hint: Text generation function
 def milestone_5() -> dict[str, Any]:
-    """Generate dynamic play-by-play commentary snippets."""
+    """Milestone 5: Dynamic text generation function for commentary snippets."""
     model, tokenizer = get_trained_model(epochs=10)
     prompt = "Curry with five seconds remaining"
     commentary = generate_sports_commentary(
@@ -286,15 +270,11 @@ def milestone_5() -> dict[str, Any]:
     }
 
 
-# --- Milestone 6: Create a CLI where users can input a prompt and receive generated commentary.
-# Hint: Command-line interface development
 def milestone_6() -> dict[str, Any]:
-    """Verify CLI integration and commentary saving mechanism."""
-    from app.cli import main
+    """Milestone 6: CLI interaction and persistent history storage."""
     store = Store("data/history.json")
     prompt = "Messi with a free kick outside the box"
     
-    # Generate and save via core helper
     model, tokenizer = get_trained_model(epochs=6)
     commentary = generate_sports_commentary(
         model=model,
@@ -305,7 +285,6 @@ def milestone_6() -> dict[str, Any]:
         excitement="high"
     )
 
-    # Store commentary record
     record = {
         "prompt": prompt,
         "commentary": commentary,
